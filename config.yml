@@ -1,0 +1,60 @@
+# Ansible WebUI 設定ファイル
+# パスワード等の機密情報はこのファイルには書かない（環境変数で渡す。DEPLOY.md参照）。
+
+# Playbook本体・tasks/配下が置かれているディレクトリ（ansible-playbook実行時のカレントディレクトリになる）。
+# daily_check_*.ymlが生成する一括更新スクリプトは、このディレクトリ配下のdaily_check/に保存される前提。
+ansible_dir: /etc/ansible/playbook
+inventory_path: /etc/ansible/hosts
+vault_path: /root/vault.yml
+ansible_playbook_bin: ansible-playbook
+ansible_vault_bin: ansible-vault
+ansible_inventory_bin: ansible-inventory
+
+categories:
+  - key: register
+    label: "ホスト構成更新（NetBox登録）"
+    playbooks:
+      - file: register_cisco_to_netbox.yml
+        label: "Cisco（SSH版）"
+        vault: true
+      - file: register_cisco_to_netbox_file.yml
+        label: "Cisco（収集済みファイル版）"
+        vault: true
+      - file: register_fortigate_to_netbox_api.yml
+        label: "FortiGate（API版）"
+        vault: true
+      - file: register_yamaha_to_netbox.yml
+        label: "YAMAHA（SSH版）"
+        vault: true
+      - file: register_yamaha_to_netbox_file.yml
+        label: "YAMAHA（収集済みファイル版）"
+        vault: true
+
+  - key: check
+    label: "差分チェック（単発・NetBoxへの書き込み無し）"
+    playbooks:
+      - file: check_cisco_to_netbox.yml
+        label: "Cisco（SSH版）"
+        vault: true
+      - file: check_fortigate_to_netbox_api.yml
+        label: "FortiGate（API版）"
+        vault: true
+      - file: check_yamaha_to_netbox.yml
+        label: "YAMAHA（SSH版）"
+        vault: true
+
+  - key: daily_check
+    label: "デイリーチェック（Redmine連携）"
+    playbooks:
+      - file: daily_check_cisco_to_netbox.yml
+        label: "Cisco（SSH版）"
+        vault: true
+      - file: daily_check_fortigate_to_netbox_api.yml
+        label: "FortiGate（API版）"
+        vault: true
+      - file: daily_check_yamaha_to_netbox.yml
+        label: "YAMAHA（SSH版）"
+        vault: true
+      - file: daily_check_all_to_netbox.yml
+        label: "全機種一括"
+        vault: true

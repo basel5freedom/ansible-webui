@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}一括更新スクリプト - Ansible WebUI{% endblock %}
+{% block content %}
+<h1>一括更新スクリプト実行</h1>
+<p>デイリーチェックで差分が見つかったホストについて生成される一括更新スクリプトを一覧表示・実行します。</p>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<table>
+  <thead><tr><th>ファイル名</th><th>作成日時</th><th>サイズ</th></tr></thead>
+  <tbody>
+    {% for s in scripts %}
+    <tr><td>{{ s.name }}</td><td>{{ s.mtime | dt }}</td><td>{{ s.size }} bytes</td></tr>
+    {% else %}
+    <tr><td colspan="3">スクリプトがありません</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if scripts %}
+<form method="post" action="/scripts/run">
+  <label>実行するスクリプト
+    <select name="script">
+      {% for s in scripts %}<option value="{{ s.name }}">{{ s.name }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Vaultパスワード（スクリプトが実行中に入力を求めるため、ここで渡します）
+    <input type="password" name="vault_password" autocomplete="off" required>
+  </label>
+  <button type="submit">実行</button>
+</form>
+{% endif %}
+{% endblock %}

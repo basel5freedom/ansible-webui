@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}ジョブ一覧 - Ansible WebUI{% endblock %}
+{% block content %}
+<h1>ジョブ一覧</h1>
+<table>
+  <thead><tr><th>開始</th><th>カテゴリ</th><th>Playbook</th><th>対象</th><th>状態</th></tr></thead>
+  <tbody>
+    {% for j in jobs %}
+    <tr>
+      <td><a href="/jobs/{{ j.id }}">{{ j.started_at | dt }}</a></td>
+      <td>{{ j.category }}</td>
+      <td>{{ j.playbook }}</td>
+      <td>{{ j.limit or "(全ホスト)" }}</td>
+      <td class="status-{{ j.status }}">{{ j.status }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5">まだジョブがありません</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

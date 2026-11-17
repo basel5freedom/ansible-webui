@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}vault編集 - Ansible WebUI{% endblock %}
+{% block content %}
+<h1>Vault編集</h1>
+{% if saved %}<p class="success">保存（再暗号化）しました。</p>{% endif %}
+{% if error %}<p class="error">保存に失敗しました:<br><pre>{{ error }}</pre></p>{% endif %}
+<form method="post" action="/vault/save">
+  <textarea name="content" rows="25" style="width:100%; font-family: monospace;">{{ content }}</textarea>
+  <label>保存用Vaultパスワード（再入力） <input type="password" name="password" required autocomplete="off"></label>
+  <button type="submit">保存（再暗号化してバックアップ後に反映）</button>
+</form>
+{% endblock %}

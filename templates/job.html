@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}ジョブ {{ job_id }} - Ansible WebUI{% endblock %}
+{% block content %}
+<h1>実行ログ</h1>
+{% if meta %}
+<p>カテゴリ: {{ meta.category }} / Playbook: {{ meta.playbook }} / 対象: {{ meta.limit or "(全ホスト)" }}</p>
+<p>状態: <span id="status">{{ meta.status }}</span></p>
+{% endif %}
+<div id="terminal" style="width: 100%; height: 70vh; background: #000;"></div>
+
+<!-- ★ 外部CDN(cdnjs等)への到達性が無い社内ネットワークでも動くよう、
+     xterm.jsはアプリ内(/static/xterm/)に同梱している（外部CDNには依存しない）。 -->
+<link rel="stylesheet" href="/static/xterm/xterm.min.css">
+<script src="/static/xterm/xterm.min.js"></script>
+<script>
+  const term = new Terminal({ convertEol: true, fontSize: 13 });
+  term.open(document.getElementById("terminal"));
+
+  let finished = false;
+  const statusEl = document.getElementById("status");
+
+  function markDone(statusText) {
+    finished = true;
+    statusEl.textContent = statusText;
+  }
+
+  // ★ プロキシ(nginx等)のアイドルタイムアウトでWebSocketが途中で切れることがある。
+  //   その場合でも画面が「running」のまま固まらないよう、切断時は状態APIを
+  //   ポーリングして最終状態を取得する（ログ本文の取り逃した分はページ再読込で見える）。
+  function pollStatus() {
+    if (finished) return;
+    fetch("/api/jobs/{{ job_id }}")
+      .then((r) => r.json())
+      .then((meta) => {
+        if (meta.status && meta.status !== "running") {
+          markDone(meta.status === "success" ? "成功" : "失敗");
+        } else {
+          setTimeout(pollStatus, 5000);
+        }
+      })
+      .catch(() => setTimeout(pollStatus, 5000));
+  }
+
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  const ws = new WebSocket(proto + "//" + location.host + "/ws/jobs/{{ job_id }}");
+  ws.onmessage = (ev) => {
+    const msg = JSON.parse(ev.data);
+    if (msg.type === "line") {
+      term.write(msg.data);
+    } else if (msg.type === "done") {
+      markDone("終了");
+    }
+  };
+  ws.onclose = () => {
+    if (!finished) pollStatus();
+  };
+</script>
+{% endblock %}

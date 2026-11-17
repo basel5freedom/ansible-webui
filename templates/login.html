@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}ログイン - Ansible WebUI{% endblock %}
+{% block content %}
+<h1>ログイン</h1>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<form method="post" action="/login">
+  <label>ユーザー名 <input type="text" name="username" autocomplete="username" required></label>
+  <label>パスワード <input type="password" name="password" autocomplete="current-password" required></label>
+  <button type="submit">ログイン</button>
+</form>
+{% endblock %}
